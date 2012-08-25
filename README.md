@@ -1,7 +1,7 @@
 Wordpress PHP API
 =============
 
-A PHP api for read-only access to the Wordpress database.
+A PHP API for read-only access to the Wordpress database. It also has support for caching implementations. Defaults to Memcache.
 
 ### Getting Categories
 ```php
