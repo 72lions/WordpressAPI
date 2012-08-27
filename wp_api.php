@@ -257,21 +257,25 @@ class WpApi {
     /**
      * Gets the details of a post
      *
-     * @param {Number} $postId The id of the post that we want to get the details
+     * @param {String} $identifier The post_name of the post that we want to get the details
+     * @param {Boolean} $byId Is set to true if we need to do get the post based on the id
      * @return {Object}
      * @author Thodoris Tsiridis
      */
-    public function getPostDetails($postId) {
+    public function getPostDetails($identifier, $byId = false) {
 
-        if($this->cache->get($postId) == null) {
+        if($this->cache->get($identifier) == null) {
 
             $db = new MysqlDB();
             $db->connect(self::$DB_USERNAME, self::$DB_PASSWORD, self::$DB_HOST, self::$DB_NAME);
-
             $query = "SELECT * FROM wp_posts
             WHERE post_status='publish'
-            AND (post_type='post' || post_type='page')
-            AND post_name='".mysql_real_escape_string($postId)."'";
+            AND (post_type='post' || post_type='page')";
+            if ($byId === false) {
+                $query .= " AND post_name='".mysql_real_escape_string($identifier)."'";
+            } else {
+                $query .= " AND ID=".mysql_real_escape_string($identifier);
+            }
 
             $result = mysql_query($query) or die('Class '.__CLASS__.' -> '.__FUNCTION__.' : ' . mysql_error());
             $row = mysql_fetch_array($result, MYSQL_ASSOC);
@@ -287,7 +291,7 @@ class WpApi {
                     $this->cache->set('page'.$post->id, $post);
                 }
 
-                $this->cache->set($post->slug, $post);
+                $this->cache->set($identifier, $post);
             }
 
             $db->disconnect();
@@ -295,12 +299,12 @@ class WpApi {
 
         }
 
-        return $this->cache->get($postId);
+        return $this->cache->get($identifier);
 
     }
 
     /**
-     * Gets the details of a post
+     * Gets the comments of a post
      *
      * @param {Number} $postId The id of the post that we want to get the details
      * @return {Object}
@@ -310,6 +314,11 @@ class WpApi {
         //TODO: First check memcache
     }
 
+    /**
+     * Creates a complete WpPost object
+     * @param  {Array} $row The array that holds the data of the post
+     * @return {WpPost}
+     */
     protected function createPostObject($row) {
 
         $post = new WpPost($row);
